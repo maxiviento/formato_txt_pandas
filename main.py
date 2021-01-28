@@ -1,6 +1,8 @@
 from openpyxl import load_workbook
 import pandas as pd
 
+codigo_empresa = '5541'
+
 def dar_formato(txt, total, tipo):
     if len(txt) + 1 <= total:
         resto = total - len(txt)
@@ -28,29 +30,33 @@ for row in ws_formato:
     except:
         pass
 
-df_cuotas = pd.read_csv('SEGUNDAS CUOTAS A PAGAR VIDA DIGNA TOTAL - NOMINA DE BENEFICIOS .csv')
-for column in df_cuotas:
-    print(column)
-df_xlsx = df_cuotas[['N_DEPARTAMENTO_GU', 'LOCALIDAD', 'COD SUCURSAL', 'NOMBRE SUCURSAL', 'NOMBRES', 'APELLIDOS', 'CUIT', 'FECHA DESDE', 'FECHA HASTA']]
+col_list = ['N_DEPARTAMENTO_GU', 'localidad', 'COD_SUCURSAL', 'NOMBRE_SUCURSAL', 'NOMBRES', 'APELLIDOS', 'CUIT', 'FECHA_DESDE', 'FECHA_HASTA', 'NRO_DOCUMENTO']
+df_cuotas = pd.read_excel(codigo_empresa+'.xlsx', usecols=col_list)
+
+print(list(df_cuotas.columns))
+
 try:
-    df_xlsx['COD SUCURSAL'] = df_xlsx['COD SUCURSAL'].astype(str).str.slice(0, -2, 1)
-    df_xlsx['CUIT'] = df_xlsx['CUIT'].astype(str).astype(str).str.slice(0, -2, 1)
+    df_cuotas['FECHA_HASTA'] = '0' + df_cuotas['FECHA_HASTA'].astype(str)
+    df_cuotas['FECHA_DESDE'] = '0' + df_cuotas['FECHA_DESDE'].astype(str)
+    df_cuotas['COD SUCURSAL'] = df_cuotas['COD SUCURSAL'].astype(str).str.slice(0, -2, 1)
+    df_cuotas['CUIT'] = df_cuotas['CUIT'].astype(str).astype(str).str.slice(0, -2, 1)
 except:
     pass
-print(df_xlsx)
-df_xlsx.to_excel("Test.xlsx", index=False)
-#for index,row in df_xlsx.iterrows():
-
+print(df_cuotas['FECHA_HASTA'])
 
 print(df_cuotas)
+df_cuotas.to_excel(codigo_empresa+" formateado.xlsx", index=False)
 
-txt = "00012021000093350186700000000000000000000000000001022021050220210205541" + dar_formato("", 953, 'A')
+print(df_cuotas)
+monto_gral = '004128000000'
+cantidad_registros = '00002064'
+txt = "00012021"+cantidad_registros+monto_gral+"000000000000000000000102202105022021020"+ codigo_empresa + dar_formato("", 953, 'A')
 for index, row in df_cuotas.iterrows():
     txt += "\n"
+    txt += "00"
     #GRUPO DE PAGO	FECHA DESDE	FECHA HASTA
-    txt += "000102202105022021"
+    txt += str(row['FECHA_DESDE']) + str(row['FECHA_HASTA'])
     cuit = str(row['CUIT'])
-    cuit = cuit[:-2]
     txt += dar_formato(cuit, 11, 'N')
     #EXCAJA	 TIPO BENEFICIARIO
     txt += "000"
@@ -80,18 +86,20 @@ for index, row in df_cuotas.iterrows():
     #NRO CUENTA VALOR FIJO 0	FECHA DESDE PROX PAGO: DDMMAAA	FECHA HASTA PROX PAGO: DDMMAAAA
     txt += dar_formato("", 36, 'N')
     #LEYENDA 1	LEYENDA 2	LEYENDA 3	LEYENDA 4
-    txt += "GOBIERNO DE LA PROVINCIA DE CORDOBA   MIN DE PROMOCIÓN DEL EMPLEO Y ECONOMIAPROGRAMA ASIGNACION ESTIMULO          APODERADO DE                          "
+    ministerio = 'MINISTERIO DE DESARROLLO SOCIAL       '
+    programa = 'PROGRAMA VIDA DIGNA                   '
+    txt += "GOBIERNO DE LA PROVINCIA DE CORDOBA   "+ministerio+programa+"APODERADO DE                          "
     #LEYENDA 5
     txt += dar_formato(apellido_nombre, 38, 'A')
     #LEYENDA 6	LEYENDA 7	LEYENDA 8
     txt += dar_formato("", 114, 'A')
     #CÓDIGO PAGO-IMPAGO: LA EMPRESA DEBE PONER SIEMPRE 1= IMPAGO. ELBANCO EN LA RENDICIÓN DEVUELVE 0=PAGO O 1=IMPAGO	FECHA PAGO:COMPLETA EL BANCO LA EMPRESA DEBE PONER 0	PAGO CON TARJETA VALOR FIJO = 0	MOTIVO IMPAGO VALOR FIJO PARA LA EMPRESA=0- LUEGO COMPLETA EL BANCO - VER ANEXOS	NÚMERO DE COMPROBANTE: COMPLETA EL BANCO	ÚLTIMO MOV CUENTA: COMPLETA EL BANCO	RETENCIÓN DE TARJETA: 0=PAGO NORMAL; 1=TARJ.RETENIDA CAJERO	COMISIÓN: VALOR FIJO= ESPACIO	UR ASIGNADA: VALOR FIJO=000	IMPORTE  MORATORIA AFIP: VALOR FIJO=0000000000	IMP. RETROACTIVO MOR. AFIP: VALOR FIJO=0000000000	IMPORTE NETO A COBRAR 	CÓDIGO DE EMPRESA
-    txt += "100000000000000000000000000 000000000000000000000000000020000005541"
+    txt += "100000000000000000000000000 00000000000000000000000000002000000"+ codigo_empresa
     #USO FUTURO: VALOR FIJO= ESPACIOS
     txt += dar_formato("", 38, 'A')
 
     
 
-f = open("formateado.txt", "a")
+f = open(codigo_empresa+".txt", "w")
 f.write(txt)
 f.close()
