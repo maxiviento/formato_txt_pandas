@@ -30,15 +30,13 @@ for row in ws_formato:
     except:
         pass
 
-col_list = ['MONTO', 'N_DEPARTAMENTO_GU', 'localidad', 'NUMERO DE SUCURSAL', 'NOMBRE SUCURSAL', 'NOMBRES', 'APELLIDOS', 'CUIT', 'FECHA_DESDE', 'FECHA_HASTA', 'NRO_DOCUMENTO']
+col_list = ['MONTO', 'localidad', 'COD_SUCURSAL', 'NOMBRE_SUCURSAL', 'NOMBRES', 'APELLIDOS', 'CUIT', 'FECHA_DESDE', 'FECHA_HASTA', 'NRO_DOCUMENTO', 'DATOS BANCO']
 df_cuotas = pd.read_excel(codigo_empresa+'.xlsx', usecols=col_list)
 
 print(list(df_cuotas.columns))
 
 try:
-    df_cuotas['FECHA_HASTA'] = '0' + df_cuotas['FECHA_HASTA'].astype(str)
-    df_cuotas['FECHA_DESDE'] = '0' + df_cuotas['FECHA_DESDE'].astype(str)
-    df_cuotas['NUMERO DE SUCURSAL'] = df_cuotas['NUMERO DE SUCURSAL'].astype(str).str.slice(0, -2, 1)
+    df_cuotas['COD_SUCURSAL'] = df_cuotas['COD_SUCURSAL'].astype(str).str.slice(0, -2, 1)
     df_cuotas['CUIT'] = df_cuotas['CUIT'].astype(str).astype(str).str.slice(0, -2, 1)
 except:
     pass
@@ -53,19 +51,19 @@ calc_monto_gral = df_cuotas['MONTO'].sum()
 monto_gral = dar_formato(str(calc_monto_gral), 10, 'N')
 monto_gral = monto_gral + '00'
 cantidad_registros = dar_formato(str(df_cuotas.shape[0]), 8, 'N')
-txt = "00022021"+cantidad_registros+monto_gral+"000000000000000000000103202105032021020"+ codigo_empresa + dar_formato("", 953, 'A')
+txt = "00032021"+cantidad_registros+monto_gral+"000000000000000000002203202105042021020"+ codigo_empresa + dar_formato("", 953, 'A')
 for index, row in df_cuotas.iterrows():
     txt += "\n"
     txt += "00"
     #GRUPO DE PAGO	FECHA DESDE	FECHA HASTA
-    txt += str(row['FECHA_DESDE']) + str(row['FECHA_HASTA'])
+    txt += dar_formato(str(row['FECHA_DESDE']), 8, 'N') + dar_formato(str(row['FECHA_HASTA']), 8, 'N')
     cuit = str(row['CUIT'])
     txt += dar_formato(cuit, 11, 'N')
     #EXCAJA	 TIPO BENEFICIARIO
     txt += "000"
     txt += dar_formato(str(row['NRO_DOCUMENTO']), 8, 'N')
     #BCO: FIJO= 020	SUCURSAL
-    txt += "0020931"
+    txt += "0020" + dar_formato(str(row['COD_SUCURSAL']), 3, 'N')
     apellido_nombre = str(row['APELLIDOS']) + " " + str(row['NOMBRES'])
     apellido_nombre = apellido_nombre.title().upper()
     txt += dar_formato(apellido_nombre, 27, 'A')
